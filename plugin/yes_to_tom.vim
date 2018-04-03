@@ -8,16 +8,15 @@ let s:notes_file_format = "notes_for_%Y_%b_%d.txt"
 function! s:OpenNotes()
   " Open the day files
   execute "tab split " . <SID>MakeTodayFile()
-  if filewritable(<SID>MakeTodayFile())
-    execute "normal! iyay\<esc>"
-  else
-    execute "normal! iboo\<esc>"
-  endif
-  set buftype=nofile
+  autocmd InsertLeave <buffer> update
   execute "split " . <SID>MakeTomorrowFile()
-  set buftype=nofile
+  autocmd InsertLeave <buffer> update
   execute "vsplit " . <SID>FindOrMakeYesterdayFile()
-  set buftype=nofile
+  if <SID>FindOrMakeYesterdayFile() ==? "__Yesterday__"
+    set buftype=nofile
+  else
+    autocmd InsertLeave <buffer> update
+  end
 
   " Move to the file for today
   execute "normal! \<C-w>j"
@@ -36,7 +35,6 @@ function! s:FindOrMakeYesterdayFile()
       return <SID>FullFileByDate(day_to_check - (84600 * days_ago))
     endif
   endfor
-  " TODO do something to notify that none was found
   return "__Yesterday__"
 endfunction
 
